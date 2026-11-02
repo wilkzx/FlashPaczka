@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ FlashPaczka - Kurier Minecraft & Create Mod</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        .font-pixel {
+            font-family: 'Press Start 2P', cursive;
+        }
+        .font-sans-custom {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        
+        @keyframes pulse-yellow {
+            0%, 100% { opacity: 0.15; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(1.05); }
+        }
+        .lightning-bg {
+            animation: pulse-yellow 4s infinite ease-in-out;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #09090b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #eab308;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 font-sans-custom min-h-screen flex flex-col justify-between selection:bg-yellow-500 selection:text-black">
+
+    <!-- Background glow accents -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-yellow-500/10 rounded-full blur-[120px] lightning-bg"></div>
+        <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-amber-600/10 rounded-full blur-[100px]"></div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-40 bg-zinc-900/90 backdrop-blur-md border-b-4 border-yellow-500 shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('home')">
+                <div class="w-12 h-12 bg-yellow-400 border-2 border-yellow-200 rounded-xl flex items-center justify-center text-zinc-950 text-2xl font-black shadow-lg shadow-yellow-500/30 transform hover:scale-105 transition-transform">
+                    ⚡
+                </div>
+                <div>
+                    <h1 class="font-pixel text-yellow-400 text-base sm:text-lg tracking-wider">FlashPaczka</h1>
+                    <p class="text-[11px] text-zinc-400 font-semibold tracking-wide">BŁYSKAWICZNY KURIER CREATE</p>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <nav class="hidden md:flex items-center gap-2">
+                <button onclick="switchTab('home')" id="nav-home" class="nav-btn px-4 py-2 rounded-xl font-bold text-xs transition-all text-yellow-400 bg-zinc-800 border-b-2 border-yellow-500">
+                    🏠 Główna
+                </button>
+                <button onclick="switchTab('shop')" id="nav-shop" class="nav-btn px-4 py-2 rounded-xl font-bold text-xs text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all">
+                    ⚙️ Sklep (Create Mod)
+                </button>
+                <button onclick="switchTab('courier')" id="nav-courier" class="nav-btn px-4 py-2 rounded-xl font-bold text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 transition-all flex items-center gap-1.5">
+                    🚚 Panel Kuriera <span id="pending-count-badge" class="bg-amber-500 text-zinc-950 px-1.5 py-0.5 rounded-full text-[10px] font-bold">0</span>
+                </button>
+            </nav>
+
+            <!-- Cart Trigger Button -->
+            <button onclick="switchTab('cart')" id="nav-cart" class="relative px-4 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-extrabold rounded-xl transition-all flex items-center gap-2 text-xs shadow-lg shadow-yellow-500/20 active:scale-95">
+                🛒 Koszyk
+                <span id="cart-badge" class="bg-zinc-950 text-yellow-400 text-[11px] px-2 py-0.5 rounded-full font-mono border border-yellow-400/40">0</span>
+            </button>
+        </div>
+
+        <!-- Mobile Navigation Bar -->
+        <div class="flex md:hidden border-t border-zinc-800 bg-zinc-900 justify-around p-2 text-xs font-bold">
+            <button onclick="switchTab('home')" class="p-2 text-zinc-300 hover:text-yellow-400">🏠 Główna</button>
+            <button onclick="switchTab('shop')" class="p-2 text-zinc-300 hover:text-yellow-400">⚙️ Sklep</button>
+            <button onclick="switchTab('courier')" class="p-2 text-amber-400">🚚 Panel Kuriera</button>
+        </div>
+    </header>
+
+    <!-- Main Content Containers -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow relative z-10 w-full">
+
+        <!-- TAB: HOME -->
+        <section id="tab-home" class="tab-content block space-y-10">
+            <!-- Banner -->
+            <div class="relative bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border-2 border-yellow-500/40 rounded-3xl p-8 sm:p-12 overflow-hidden shadow-2xl">
+                <div class="max-w-2xl space-y-6 relative z-10">
+                    <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 text-xs font-mono font-bold rounded-full">
+                        ⚡ NAJSZYBSZA DOSTAWA W MINECRAFT
+                    </span>
+                    <h2 class="text-3xl sm:text-5xl font-extrabold text-white leading-tight">
+                        Nasi kurierzy są <span class="text-yellow-400 underline decoration-yellow-500/50">superszybcy</span> i wysyłają paczki prosto na Twój serwer! 📦💨
+                    </h2>
+                    <p class="text-zinc-300 text-base leading-relaxed">
+                        Nie marnuj godzin na żmudne craftowanie z modułu **Create**. Zamów gotowe podzespoły, przekładnie, silniki parowe czy tory kolejowe z dostawą pod Twoje drzwi na dowolnym serwerze!
+                    </p>
+                    <div class="flex flex-wrap gap-4 pt-2">
+                        <button onclick="switchTab('shop')" class="px-6 py-3.5 bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-black rounded-xl shadow-lg shadow-yellow-500/30 transition-all flex items-center gap-2 text-sm uppercase tracking-wide">
+                            ⚙️ Zamów ze Sklepu Create
+                        </button>
+                        <button onclick="switchTab('courier')" class="px-6 py-3.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 font-bold rounded-xl border border-amber-500/30 transition-all text-sm flex items-center gap-2">
+                            🚚 Jesteś Kurierem? Zobacz zlecenia
+                        </button>
+                    </div>
+                </div>
+                <!-- Banner Watermark -->
+                <div class="absolute right-6 bottom-4 hidden lg:block opacity-20 pointer-events-none font-pixel text-[130px] text-yellow-500 select-none">
+                    ⚙️
+                </div>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-yellow-500/40 transition-all">
+                    <div class="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center text-yellow-400 text-2xl mb-4">⚡</div>
+                    <h3 class="font-bold text-lg text-white mb-2">Ekspresowy Kurier</h3>
+                    <p class="text-zinc-400 text-sm">Kurier dostarcza przesyłkę bezpośrednio do gracza na podanym serwerze po podaniu kodu odbioru.</p>
+                </div>
+                <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-yellow-500/40 transition-all">
+                    <div class="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center text-cyan-400 text-2xl mb-4">💎</div>
+                    <h3 class="font-bold text-lg text-white mb-2">Płatność w Graj-Surowcach</h3>
+                    <p class="text-zinc-400 text-sm">Bez realnej gotówki! Płacisz kurierowi na miejscu diamentami (Diax) lub sztabkami żelaza.</p>
+                </div>
+                <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-yellow-500/40 transition-all">
+                    <div class="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 text-2xl mb-4">⚙️</div>
+                    <h3 class="font-bold text-lg text-white mb-2">Pełny Moda Create</h3>
+                    <p class="text-zinc-400 text-sm">Od kół zębatych po precyzyjne mechanizmy, wiatraki i zaawansowane układy automatyki.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: SHOP -->
+        <section id="tab-shop" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900 p-5 rounded-2xl border border-zinc-800">
+                <div>
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-2">⚙️ Asortyment Create Mod</h2>
+                    <p class="text-xs text-zinc-400">Wybierz komponenty fabryczne i dodaj je do koszyka</p>
+                </div>
+                <!-- Categories filter -->
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button onclick="filterShop('all', this)" class="shop-filter-btn text-xs font-bold px-3 py-2 rounded-xl bg-yellow-500 text-zinc-950 transition-all">Wszystkie</button>
+                    <button onclick="filterShop('mechanisms', this)" class="shop-filter-btn text-xs font-bold px-3 py-2 rounded-xl bg-zinc-800 text-zinc-400 hover:text-white transition-all">⚙️ Mechanizmy</button>
+                    <button onclick="filterShop('railway', this)" class="shop-filter-btn text-xs font-bold px-3 py-2 rounded-xl bg-zinc-800 text-zinc-400 hover:text-white transition-all">🚂 Kolej</button>
+                    <button onclick="filterShop('materials', this)" class="shop-filter-btn text-xs font-bold px-3 py-2 rounded-xl bg-zinc-800 text-zinc-400 hover:text-white transition-all">🧱 Materiały</button>
+                    <button onclick="filterShop('automation', this)" class="shop-filter-btn text-xs font-bold px-3 py-2 rounded-xl bg-zinc-800 text-zinc-400 hover:text-white transition-all">🤖 Automatyka</button>
+                </div>
+            </div>
+
+            <!-- Items Grid -->
+            <div id="shop-items-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <!-- Items populated by JS -->
+            </div>
+        </section>
+
+        <!-- TAB: CART & CHECKOUT -->
+        <section id="tab-cart" class="tab-content hidden space-y-8">
+            <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- Cart List -->
+                <div class="lg:col-span-7 bg-zinc-900 border border-zinc-800 rounded-3xl p-6 space-y-5">
+                    <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            🛒 Twój Koszyk Zamówień
+                        </h2>
+                        <button onclick="clearCart()" class="text-xs text-red-400 hover:text-red-300 font-semibold">Wyczyść koszyk</button>
+                    </div>
+
+                    <div id="cart-items-container" class="space-y-3 min-h-[220px]">
+                        <!-- Items rendered here -->
+                    </div>
+
+                    <!-- Cart Total summary -->
+                    <div class="border-t border-zinc-800 pt-4 flex justify-between items-center bg-zinc-950/60 p-4 rounded-2xl">
+                        <span class="text-sm font-bold text-zinc-400">Do zapłaty kurierowi:</span>
+                        <div id="cart-total-price" class="text-right font-extrabold text-yellow-400 text-base">
+                            0 Diax / 0 Żelaza
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Checkout Form -->
+                <div class="lg:col-span-5 bg-zinc-900 border border-yellow-500/30 rounded-3xl p-6 space-y-6 shadow-2xl relative">
+                    <div class="border-b border-zinc-800 pb-4">
+                        <h3 class="text-lg font-bold text-yellow-400">📦 Zamów Dostawę Kurierem</h3>
+                        <p class="text-xs text-zinc-400">Kurier dostarczy przedmiot prosto na podany serwer</p>
+                    </div>
+
+                    <form id="checkout-form" onsubmit="handleCheckout(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-zinc-300 uppercase mb-2">Nick w Minecraft (MC):</label>
+                            <input type="text" id="player-nick" required placeholder="np. Steve_Pro21" class="w-full bg-zinc-950 border border-zinc-700 focus:border-yellow-500 rounded-xl p-3 text-sm text-white outline-none transition-colors">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-zinc-300 uppercase mb-2">Nazwa / IP Serwera MC:</label>
+                            <input type="text" id="server-ip" required placeholder="np. mc.create-server.pl" class="w-full bg-zinc-950 border border-zinc-700 focus:border-yellow-500 rounded-xl p-3 text-sm text-white outline-none transition-colors">
+                        </div>
+
+                        <div class="bg-yellow-500/10 border border-yellow-500/20 p-3.5 rounded-xl text-xs text-yellow-300 space-y-1">
+                            <p class="font-bold flex items-center gap-1">⚡ Dostawa ekspresowa!</p>
+                            <p class="text-zinc-400">Zamówienie po wysłaniu natychmiast pojawia się w systemie naszych kurierów.</p>
+                        </div>
+
+                        <button type="submit" class="w-full py-4 bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-black rounded-xl text-sm tracking-wide uppercase transition-all shadow-lg shadow-yellow-500/20 active:scale-95 flex items-center justify-center gap-2">
+                            ⚡ Zapłać i Generuj Kod Dla Kuriera
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- TAB: COURIER PANEL -->
+        <section id="tab-courier" class="tab-content hidden space-y-6">
+            <div class="bg-gradient-to-r from-amber-950/40 via-zinc-900 to-zinc-900 border border-amber-500/30 p-6 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <span class="inline-block px-3 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[10px] font-mono font-bold rounded-full mb-2">
+                        PANEL DOSTAWCY FLASH PACZKA
+                    </span>
+                    <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+                        🚚 Zlecenia Dostawy dla Kurierów
+                    </h2>
+                    <p class="text-xs text-zinc-400">Sprawdź co masz do dostarczenia graczy, pobierz zapłatę w Diax/Żelazie i zweryfikuj kod.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="bg-zinc-950 px-4 py-2 rounded-xl border border-zinc-800 text-xs">
+                        <span class="text-zinc-400">Wszystkie zlecenia:</span>
+                        <strong id="total-orders-stat" class="text-amber-400 ml-1">0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders List for Couriers -->
+            <div id="courier-orders-list" class="space-y-4">
+                <!-- Populated dynamically -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-zinc-900 border-t border-zinc-800 py-6 text-center text-xs text-zinc-500 relative z-10">
+        <p>⚡ <strong>FlashPaczka</strong> — Najszybszy Kurier Przedmiotów Minecraft & Create Mod.</p>
+        <p class="mt-1">Strona nie jest powiązana z Mojang Studios ani z twórcami moda Create.</p>
+    </footer>
+
+    <!-- Animated Modal for Courier Pickup Code -->
+    <div id="modal-pickup" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border-2 border-yellow-500 rounded-3xl max-w-md w-full p-6 text-center space-y-6 shadow-2xl relative">
+            
+            <div class="w-16 h-16 bg-yellow-500 rounded-2xl flex items-center justify-center text-zinc-950 text-3xl mx-auto font-black shadow-lg shadow-yellow-500/50">
+                📦
+            </div>
+
+            <div>
+                <h3 class="text-xl font-extrabold text-white">Przesyłka Wysłana do Kuriera!</h3>
+                <p class="text-xs text-zinc-400 mt-1">Nasi kurierzy widzą już Twoje zamówienie w systemie.</p>
+            </div>
+
+            <!-- Code display area -->
+            <div class="bg-zinc-950 border-2 border-dashed border-yellow-500/50 p-4 rounded-2xl space-y-2">
+                <span class="text-xs text-zinc-400 font-bold uppercase tracking-wider block">Twój Kod Odbioru Paczki:</span>
+                <div id="generated-code" class="font-pixel text-yellow-400 text-2xl tracking-widest select-all">
+                    FP-0000-MC
+                </div>
+            </div>
+
+            <div class="text-left bg-zinc-800/60 p-4 rounded-xl text-xs space-y-2 text-zinc-300">
+                <p class="font-bold text-white flex items-center gap-1">
+                    <span>💬</span> Co zrobić na serwerze?
+                </p>
+                <p>1. Wejdź na serwer: <strong id="summary-server" class="text-yellow-400">---</strong></p>
+                <p>2. Gdy podjedzie kurier dla gracza <strong id="summary-nick" class="text-yellow-400">---</strong>, podyktuj mu podany KOD.</p>
+                <p>3. Przekaż diamenty/żelazo i odbierz paczkę z moda Create!</p>
+            </div>
+
+            <button onclick="closeModal()" class="w-full py-3.5 bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-extrabold rounded-xl transition-all">
+                Gotowe, zamknij okno
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-yellow-500 text-zinc-950 px-4 py-3 rounded-xl font-bold text-xs shadow-xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2">
+        <span>⚡</span> <span id="toast-message">Powiadomienie</span>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Extended Create Mod Catalogue
+        const shopProducts = [
+            { id: 1, name: "Cogwheel (Koło Zębate)", category: "mechanisms", priceDiax: 1, priceIron: 4, icon: "⚙️", desc: "Podstawowy element przekazywania siły kinetycznej." },
+            { id: 2, name: "Large Cogwheel (Duże Koło)", category: "mechanisms", priceDiax: 2, priceIron: 6, icon: "🎡", desc: "Służy do zmiany prędkości obrotowej mechanizmów." },
+            { id: 3, name: "Water Wheel (Koło Wodne)", category: "mechanisms", priceDiax: 2, priceIron: 8, icon: "🌊", desc: "Generuje stałą siłę z obracającej się wody." },
+            { id: 4, name: "Windmill Bearing (Wiatrak)", category: "mechanisms", priceDiax: 4, priceIron: 14, icon: "💨", desc: "Łożysko wiatraka do generowania wielkiej mocy." },
+            { id: 5, name: "Mechanical Press (Prasa)", category: "mechanisms", priceDiax: 4, priceIron: 16, icon: "🔨", desc: "Niezbędna do prasowania płyt i elementów metalowych." },
+            { id: 6, name: "Mechanical Mixer (Mieszadło)", category: "mechanisms", priceDiax: 5, priceIron: 18, icon: "🥣", desc: "Twórz stopy metali w połączeniu z kociołkiem." },
+            { id: 7, name: "Mechanical Saw (Piła)", category: "mechanisms", priceDiax: 3, priceIron: 12, icon: "🪚", desc: "Automatyczne ścinanie drzew i cięcie bloków." },
+            { id: 8, name: "Steam Engine (Silnik Parowy)", category: "mechanisms", priceDiax: 8, priceIron: 32, icon: "🏭", desc: "Potężne źródło energii dla dużych fabryk." },
+            { id: 9, name: "Crushing Wheel (Koło Miażdżące)", category: "mechanisms", priceDiax: 12, priceIron: 48, icon: "⚙️", desc: "Zgniata rudy i surowce podnosząc ich wydajność." },
+            
+            { id: 10, name: "Train Casing (Obudowa Pociągu)", category: "railway", priceDiax: 3, priceIron: 12, icon: "🚂", desc: "Podstawa budowy własnego pociągu w Create." },
+            { id: 11, name: "Railway Casing (Torowisko)", category: "railway", priceDiax: 2, priceIron: 10, icon: "🛤️", desc: "Element konstrukcyjny stacji i torów kolejowych." },
+            { id: 12, name: "Track Station (Stacja Kolejowa)", category: "railway", priceDiax: 4, priceIron: 16, icon: "🚉", desc: "Zarządzanie trasami i rozkładem jazdy pociągów." },
+            
+            { id: 13, name: "Andesite Alloy (Stop Andezytowy x16)", category: "materials", priceDiax: 1, priceIron: 4, icon: "🪨", desc: "Podstawowy stop do budowy urządzeń mechanicznych." },
+            { id: 14, name: "Brass Ingot (Mosiądz x8)", category: "materials", priceDiax: 2, priceIron: 6, icon: "🧈", desc: "Stop miedzi i cynku do budowy zaawansowanej automatyki." },
+            { id: 15, name: "Precision Mechanism (Mechanizm)", category: "materials", priceDiax: 6, priceIron: 24, icon: "⏱️", desc: "Precyzyjny komponent mosiężnej technologii." },
+            { id: 16, name: "Belt Connector (Pasek x8)", category: "materials", priceDiax: 1, priceIron: 4, icon: "🛞", desc: "Łączy przekładnie i transportuje przedmioty." },
+
+            { id: 17, name: "Deployer (Ustawiacz)", category: "automation", priceDiax: 5, priceIron: 20, icon: "🤖", desc: "Naśladuje klikanie gracza, używa narzędzi i bloków." },
+            { id: 18, name: "Filter (Filtr Przedmiotów)", category: "automation", priceDiax: 1, priceIron: 5, icon: "🔍", desc: "Precyzyjna kontrola tego, co trafia do skrzyń." },
+            { id: 19, name: "Portable Storage Interface", category: "automation", priceDiax: 4, priceIron: 16, icon: "📦", desc: "Bezprzewodowe przesyłanie ekwipunku z pojazdów." }
+        ];
+
+        // State & LocalStorage Orders Base
+        let cart = [];
+        let orders = [
+            {
+                code: "FP-7721-MC",
+                nick: "Steve_Pro",
+                server: "mc.create-poland.pl",
+                status: "Oczekuje na kuriera",
+                items: [
+                    { name: "Steam Engine (Silnik Parowy)", quantity: 1, priceDiax: 8, priceIron: 32 },
+                    { name: "Cogwheel (Koło Zębate)", quantity: 4, priceDiax: 4, priceIron: 16 }
+                ],
+                totalDiax: 12,
+                totalIron: 48,
+                date: "Dzisiaj, 14:20"
+            }
+        ];
+
+        // Tab Switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-yellow-400', 'bg-zinc-800', 'border-b-2', 'border-yellow-500');
+                btn.classList.add('text-zinc-300');
+            });
+            
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav && tabId !== 'courier') {
+                activeNav.classList.add('text-yellow-400', 'bg-zinc-800', 'border-b-2', 'border-yellow-500');
+            }
+
+            if(tabId === 'courier') {
+                renderCourierOrders();
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Render Shop Items
+        function renderShop(items = shopProducts) {
+            const container = document.getElementById('shop-items-grid');
+            container.innerHTML = items.map(item => `
+                <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col justify-between hover:border-yellow-500/50 transition-all hover:shadow-lg hover:shadow-yellow-500/5 group">
+                    <div>
+                        <div class="w-14 h-14 bg-zinc-950 rounded-xl flex items-center justify-center text-3xl mb-4 border border-zinc-800 group-hover:border-yellow-500/30 transition-colors">
+                            ${item.icon}
+                        </div>
+                        <h3 class="font-bold text-white text-sm mb-1">${item.name}</h3>
+                        <p class="text-xs text-zinc-400 mb-4 leading-relaxed">${item.desc}</p>
+                    </div>
+                    <div class="space-y-3 pt-3 border-t border-zinc-800/80">
+                        <div class="flex items-center justify-between text-xs font-bold">
+                            <span class="text-cyan-400">💎 ${item.priceDiax} Diax</span>
+                            <span class="text-zinc-400">⚙️ ${item.priceIron} Żelaza</span>
+                        </div>
+                        <button onclick="addToCart(${item.id})" class="w-full py-2.5 bg-zinc-800 hover:bg-yellow-500 hover:text-zinc-950 text-white font-bold text-xs rounded-xl border border-zinc-700 hover:border-yellow-500 transition-all flex items-center justify-center gap-2">
+                            <span>+</span> Dodaj do koszyka
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Shop Filter
+        function filterShop(category, btnElement) {
+            document.querySelectorAll('.shop-filter-btn').forEach(btn => {
+                btn.classList.remove('bg-yellow-500', 'text-zinc-950');
+                btn.classList.add('bg-zinc-800', 'text-zinc-400');
+            });
+            btnElement.classList.remove('bg-zinc-800', 'text-zinc-400');
+            btnElement.classList.add('bg-yellow-500', 'text-zinc-950');
+
+            if(category === 'all') {
+                renderShop(shopProducts);
+            } else {
+                renderShop(shopProducts.filter(p => p.category === category));
+            }
+        }
+
+        // Cart Actions
+        function addToCart(productId) {
+            const product = shopProducts.find(p => p.id === productId);
+            const existing = cart.find(item => item.id === productId);
+
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+
+            updateCartUI();
+            showToast(`Dodano "${product.name}" do koszyka!`);
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartUI();
+        }
+
+        function updateQuantity(productId, delta) {
+            const item = cart.find(i => i.id === productId);
+            if (item) {
+                item.quantity += delta;
+                if (item.quantity <= 0) {
+                    removeFromCart(productId);
+                } else {
+                    updateCartUI();
+                }
+            }
+        }
+
+        function clearCart() {
+            cart = [];
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const totalCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+            document.getElementById('cart-badge').innerText = totalCount;
+
+            const container = document.getElementById('cart-items-container');
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-zinc-500 space-y-2">
+                        <p class="text-4xl">🛒</p>
+                        <p class="text-sm font-semibold">Twój koszyk jest pusty</p>
+                        <button onclick="switchTab('shop')" class="text-xs text-yellow-400 underline hover:text-yellow-300">Wybierz elementy z Moda Create</button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = cart.map(item => `
+                    <div class="flex items-center justify-between bg-zinc-950 p-3.5 rounded-2xl border border-zinc-800">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">${item.icon}</span>
+                            <div>
+                                <h4 class="font-bold text-white text-xs sm:text-sm">${item.name}</h4>
+                                <span class="text-xs text-zinc-400">💎 ${item.priceDiax * item.quantity} Diax / ⚙️ ${item.priceIron * item.quantity} Żelaza</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center bg-zinc-900 border border-zinc-700 rounded-lg">
+                                <button onclick="updateQuantity(${item.id}, -1)" class="px-2.5 py-1 text-zinc-400 hover:text-white font-bold">-</button>
+                                <span class="px-2 text-xs font-mono font-bold text-white">${item.quantity}</span>
+                                <button onclick="updateQuantity(${item.id}, 1)" class="px-2.5 py-1 text-zinc-400 hover:text-white font-bold">+</button>
+                            </div>
+                            <button onclick="removeFromCart(${item.id})" class="text-zinc-500 hover:text-red-400 text-sm p-1">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const totalDiax = cart.reduce((acc, i) => acc + (i.priceDiax * i.quantity), 0);
+            const totalIron = cart.reduce((acc, i) => acc + (i.priceIron * i.quantity), 0);
+
+            document.getElementById('cart-total-price').innerHTML = `
+                <span class="text-cyan-400">💎 ${totalDiax} Diax</span> <span class="text-zinc-500">/</span> <span class="text-zinc-300">⚙️ ${totalIron} Żelaza</span>
+            `;
+        }
+
+        // Checkout & Add to Orders System
+        function handleCheckout(e) {
+            e.preventDefault();
+
+            if (cart.length === 0) {
+                alert("Twój koszyk jest pusty! Dodaj najpierw przedmioty ze sklepu.");
+                return;
+            }
+
+            const nick = document.getElementById('player-nick').value.trim();
+            const server = document.getElementById('server-ip').value.trim();
+
+            const randomNum = Math.floor(1000 + Math.random() * 9000);
+            const code = `FP-${randomNum}-MC`;
+
+            const totalDiax = cart.reduce((acc, i) => acc + (i.priceDiax * i.quantity), 0);
+            const totalIron = cart.reduce((acc, i) => acc + (i.priceIron * i.quantity), 0);
+
+            // Add order to global list for couriers
+            const newOrder = {
+                code: code,
+                nick: nick,
+                server: server,
+                status: "Oczekuje na kuriera",
+                items: cart.map(i => ({ name: i.name, quantity: i.quantity, priceDiax: i.priceDiax, priceIron: i.priceIron })),
+                totalDiax: totalDiax,
+                totalIron: totalIron,
+                date: "Przed chwilą"
+            };
+
+            orders.unshift(newOrder);
+            updatePendingBadge();
+
+            // Populate Modal
+            document.getElementById('generated-code').innerText = code;
+            document.getElementById('summary-nick').innerText = nick;
+            document.getElementById('summary-server').innerText = server;
+
+            // Show Modal
+            document.getElementById('modal-pickup').classList.remove('hidden');
+
+            if(typeof confetti === 'function') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            cart = [];
+            updateCartUI();
+        }
+
+        // Courier Panel Functions
+        function renderCourierOrders() {
+            const container = document.getElementById('courier-orders-list');
+            document.getElementById('total-orders-stat').innerText = orders.length;
+
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center text-zinc-500">
+                        Brak zgłoszonych zleceń w systemie kurierskim.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = orders.map((order, index) => {
+                let statusBadgeClass = "bg-yellow-500/10 text-yellow-400 border-yellow-500/30";
+                if(order.status === "W trakcie dostawy") statusBadgeClass = "bg-blue-500/10 text-blue-400 border-blue-500/30";
+                if(order.status === "Dostarczono") statusBadgeClass = "bg-green-500/10 text-green-400 border-green-500/30";
+
+                return `
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-4 hover:border-amber-500/30 transition-all">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-zinc-800 pb-3">
+                            <div class="flex items-center gap-3">
+                                <span class="font-pixel text-yellow-400 text-sm tracking-wider">${order.code}</span>
+                                <span class="px-3 py-1 text-xs font-bold rounded-full border ${statusBadgeClass}">
+                                    ${order.status}
+                                </span>
+                            </div>
+                            <span class="text-xs text-zinc-500">${order.date}</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                            <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 space-y-1">
+                                <span class="text-zinc-500 uppercase font-bold text-[10px]">Odbiorca i Serwer:</span>
+                                <p class="text-white font-bold">Gracz: <span class="text-yellow-400">${order.nick}</span></p>
+                                <p class="text-white font-bold">Serwer IP: <span class="text-cyan-400">${order.server}</span></p>
+                            </div>
+                            <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 space-y-1">
+                                <span class="text-zinc-500 uppercase font-bold text-[10px]">Zapłata do pobrania od gracza:</span>
+                                <p class="text-base font-extrabold text-white">
+                                    <span class="text-cyan-400">💎 ${order.totalDiax} Diax</span> / <span class="text-zinc-300">⚙️ ${order.totalIron} Żelaza</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Item list in order -->
+                        <div class="space-y-1.5">
+                            <span class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Przedmioty Create do wydania:</span>
+                            <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 text-xs text-zinc-300 space-y-1">
+                                ${order.items.map(item => `
+                                    <div class="flex justify-between items-center">
+                                        <span>⚙️ ${item.name}</span>
+                                        <span class="font-mono font-bold text-yellow-400">x${item.quantity}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Actions for courier -->
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            ${order.status === "Oczekuje na kuriera" ? `
+                                <button onclick="updateOrderStatus(${index}, 'W trakcie dostawy')" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs rounded-xl transition-all">
+                                    🚚 Przyjmij zlecenie dostawy
+                                </button>
+                            ` : ''}
+
+                            ${order.status === "W trakcie dostawy" ? `
+                                <button onclick="updateOrderStatus(${index}, 'Dostarczono')" class="px-4 py-2 bg-green-500 hover:bg-green-400 text-zinc-950 font-bold text-xs rounded-xl transition-all">
+                                    ✅ Oznacz jako Dostarczone & Pobrano Zapłatę
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateOrderStatus(index, newStatus) {
+            orders[index].status = newStatus;
+            updatePendingBadge();
+            renderCourierOrders();
+            showToast(`Zmieniono status zamówienia na: ${newStatus}`);
+        }
+
+        function updatePendingBadge() {
+            const pendingCount = orders.filter(o => o.status === 'Oczekuje na kuriera').length;
+            document.getElementById('pending-count-badge').innerText = pendingCount;
+        }
+
+        function closeModal() {
+            document.getElementById('modal-pickup').classList.add('hidden');
+        }
+
+        // Toast notifications
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Init App
+        window.onload = function() {
+            renderShop();
+            updateCartUI();
+            updatePendingBadge();
+        };
+    </script>
+</body>
+</html>
